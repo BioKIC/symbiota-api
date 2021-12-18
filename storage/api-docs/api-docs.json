@@ -1,0 +1,75 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Symbiota API",
+        "contact": {
+            "name": "Symbiota Support Hub Team",
+            "email": "symbiota@asu.edu"
+        },
+        "version": "2.0"
+    },
+    "paths": {
+        "/api/v2/occurrences": {
+            "get": {
+                "tags": [
+                    ""
+                ],
+                "operationId": "/api/v2/occurrences",
+                "responses": {
+                    "200": {
+                        "description": "Returns list of occurrences",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error: Bad request. "
+                    }
+                }
+            }
+        },
+        "/api/v2/occurrences/{identifier}": {
+            "get": {
+                "tags": [
+                    ""
+                ],
+                "operationId": "/api/v2/occurrences/identifier",
+                "parameters": [
+                    {
+                        "name": "identifier",
+                        "in": "path",
+                        "description": "occid or specimen GUID (occurrenceID) associated with target occurrence",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeMedia",
+                        "in": "query",
+                        "description": "Whether to include media within output",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns occurrence data",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error: Bad request. Occurrence identifier is required."
+                    }
+                }
+            }
+        }
+    }
+}

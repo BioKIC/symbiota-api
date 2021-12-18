@@ -17,7 +17,23 @@ class OccurrenceController extends Controller
 
 	}
 
-	public function showAllOccurrences(Request $request)
+	/**
+	 * @OA\Get(
+	 *     path="/api/v2/occurrences",
+	 *     operationId="/api/v2/occurrences",
+	 *     tags={""},
+	 *     @OA\Response(
+	 *         response="200",
+	 *         description="Returns list of occurrences",
+	 *         @OA\JsonContent()
+	 *     ),
+	 *     @OA\Response(
+	 *         response="400",
+	 *         description="Error: Bad request. ",
+	 *     ),
+	 * )
+	 */
+	 public function showAllOccurrences(Request $request)
 	{
 		$limit = 100;
 		$page = 0;
@@ -26,7 +42,37 @@ class OccurrenceController extends Controller
 		return response()->json(Occurrence::skip($page)->take($limit)->get());
 	}
 
-	public function showOneOccurrence($id, Request $request)
+	/**
+	 * @OA\Get(
+	 *     path="/api/v2/occurrences/{identifier}",
+	 *     operationId="/api/v2/occurrences/identifier",
+	 *     tags={""},
+	 *     @OA\Parameter(
+	 *         name="identifier",
+	 *         in="path",
+	 *         description="occid or specimen GUID (occurrenceID) associated with target occurrence",
+	 *         required=true,
+	 *         @OA\Schema(type="string")
+	 *     ),
+	 *     @OA\Parameter(
+	 *         name="includeMedia",
+	 *         in="query",
+	 *         description="Whether to include media within output",
+	 *         required=false,
+	 *         @OA\Schema(type="string")
+	 *     ),
+	 *     @OA\Response(
+	 *         response="200",
+	 *         description="Returns occurrence data",
+	 *         @OA\JsonContent()
+	 *     ),
+	 *     @OA\Response(
+	 *         response="400",
+	 *         description="Error: Bad request. Occurrence identifier is required.",
+	 *     ),
+	 * )
+	 */
+	 public function showOneOccurrence($id, Request $request)
 	{
 		$occurrence = Occurrence::find($id);
 		if($request->input('includeMedia') == 1) $occurrence->media = Occurrence::find($id)->media;

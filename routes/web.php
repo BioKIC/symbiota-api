@@ -24,9 +24,18 @@ $router->group(['prefix' => 'api'], function () use ($router) {
 	$router->delete('occurrences/{id}', ['uses' => 'OccurrenceController@delete']);
 	$router->put('occurrences/{id}', ['uses' => 'OccurrenceController@update']);
 
+	//$router->get('occurrences/annotations',  ['uses' => 'OccurrenceAnnotationsController@showAllAnnotations']);
+	//$router->get('occurrences/annotations/{id}', ['uses' => 'OccurrenceAnnotationsController@showAnnotations']);
+
 	$router->get('media',  ['uses' => 'MediaController@showAllMedia']);
 	$router->get('media/{id}', ['uses' => 'MediaController@showOneMedia']);
 	$router->post('media', ['uses' => 'MediaController@create']);
 	$router->delete('media/{id}', ['uses' => 'MediaController@delete']);
 	$router->put('media/{id}', ['uses' => 'MediaController@update']);
+
+	//$router->get('registry',  ['uses' => 'RegistryController@showAllPortals']);
+	//$router->get('registry/{id}', ['uses' => 'RegistryController@showOnePortal']);
+
+	//$router->get('taxonomy',  ['uses' => 'TaxonomyController@showAllTaxa']);
+	//$router->get('taxonomy/{id}', ['uses' => 'TaxonomyController@showOneTaxon']);
 });

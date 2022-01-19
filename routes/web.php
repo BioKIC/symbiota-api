@@ -33,8 +33,8 @@ $router->group(['prefix' => 'api'], function () use ($router) {
 	$router->delete('media/{id}', ['uses' => 'MediaController@delete']);
 	$router->put('media/{id}', ['uses' => 'MediaController@update']);
 
-	//$router->get('registry',  ['uses' => 'RegistryController@showAllPortals']);
-	//$router->get('registry/{id}', ['uses' => 'RegistryController@showOnePortal']);
+	//$router->get('installation',  ['uses' => 'InstallationController@showAllPortals']);
+	//$router->get('installation/{id}', ['uses' => 'InstallationController@showOnePortal']);
 
 	//$router->get('taxonomy',  ['uses' => 'TaxonomyController@showAllTaxa']);
 	//$router->get('taxonomy/{id}', ['uses' => 'TaxonomyController@showOneTaxon']);

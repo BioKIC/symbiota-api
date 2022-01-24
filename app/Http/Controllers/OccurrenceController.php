@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Occurrence;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OccurrenceController extends Controller
 {
@@ -19,9 +20,44 @@ class OccurrenceController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v2/occurrences",
-     *     operationId="/api/v2/occurrences",
+     *     path="/api/occurrences",
+     *     operationId="/api/occurrences",
      *     tags={""},
+     *     @OA\Parameter(
+     *         name="catalogNumber",
+     *         in="query",
+     *         description="catalogNumber",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="occurrenceID",
+     *         in="query",
+     *         description="occurrenceID",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="country",
+     *         in="query",
+     *         description="country",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="stateProvince",
+     *         in="query",
+     *         description="State, Province, or second level political unit",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="county",
+     *         in="query",
+     *         description="County, parish, or third level political unit",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
      *     @OA\Response(
      *         response="200",
      *         description="Returns list of occurrences",
@@ -42,36 +78,46 @@ class OccurrenceController extends Controller
 
         $limit = $request->input('limit',100);
         $offset = $request->input('offset',0);
-        $fullCnt = Occurrence::count();
+
+        $conditions = [];
+        if($request->has('catalogNumber')) $conditions[] = ['catalogNumber',$request->catalogNumber];
+        if($request->has('occurrenceID')) $conditions[] = ['occurrenceID',$request->occurrenceID];
+        if($request->has('country')) $conditions[] = ['country',$request->country];
+        if($request->has('stateProvince')) $conditions[] = ['stateProvince',$request->stateProvince];
+        if($request->has('county')) $conditions[] = ['county','LIKE',$request->county.'%'];
+
+        $fullCnt = Occurrence::where($conditions)->count();
+        $result = Occurrence::where($conditions)->skip($offset)->take($limit)->get();
+
         $eor = false;
         $retObj = [
             "offset" => $offset,
             "limit" => $limit,
             "endOfRecords" => $eor,
             "count" => $fullCnt,
-            "results" => Occurrence::skip($offset)->take($limit)->get()
+            "results" => $result
         ];
         return response()->json($retObj);
     }
 
     /**
      * @OA\Get(
-     *     path="/api/v2/occurrences/{identifier}",
-     *     operationId="/api/v2/occurrences/identifier",
+     *     path="/api/occurrences/{identifier}",
+     *     operationId="/api/occurrences/identifier",
      *     tags={""},
      *     @OA\Parameter(
      *         name="identifier",
      *         in="path",
      *         description="occid or specimen GUID (occurrenceID) associated with target occurrence",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="integer")
      *     ),
      *     @OA\Parameter(
      *         name="includeMedia",
      *         in="query",
      *         description="Whether to include media within output",
      *         required=false,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="integer")
      *     ),
      *     @OA\Response(
      *         response="200",
@@ -90,7 +136,13 @@ class OccurrenceController extends Controller
             'includeMedia' => 'integer',
             'includeIdentHistory' => 'integer'
         ]);
+        if(!is_numeric($id)){
+            $occid = Occurrence::where('occurrenceID',$id)->value('occid');
+            if(!$occid) $occid = DB::table('guidoccurrences')->where('guid',$id)->value('occid');
+            if(is_numeric($occid)) $id = $occid;
+        }
         $occurrence = Occurrence::find($id);
+        $occurrence->recordID = DB::table('guidoccurrences')->where('occid',$id)->value('guid');
         if($request->input('includeMedia')) $occurrence->media = Occurrence::find($id)->media;
         if($request->input('includeIdentHistory ')) $occurrence->identification = Occurrence::find($id)->identification;
         return response()->json($occurrence);

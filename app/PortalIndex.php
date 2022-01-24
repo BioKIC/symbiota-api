@@ -5,10 +5,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class PortalIndex extends Model
 {
-
     protected $table = 'portalindex';
     protected $primaryKey = 'portalIndexID';
-    protected $fillable = ['portalName', 'acronym', 'portalDescription', 'urlRoot', 'securityKey', 'symbVersion', 'guid', 'manager', 'managerEmail', 'primaryLead', 'primaryLeadEmail', 'notes', 'initialTimestamp'];
+    protected $fillable = ['portalName', 'acronym', 'portalDescription', 'urlRoot', 'symbVersion', 'guid', 'manager', 'managerEmail', 'primaryLead', 'primaryLeadEmail', 'notes', 'initialTimestamp'];
+    protected $guarded = [];
+    protected $hidden = ['securityKey'];
 
     public function ompublications()
     {

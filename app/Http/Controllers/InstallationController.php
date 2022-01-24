@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Occurrence;
+use App\PortalIndex;
 use Illuminate\Http\Request;
 
-class OccurrenceController extends Controller
+class InstallationController extends Controller
 {
 	/**
-	 * Occurrence controller instance.
+	 * Installation controller instance.
 	 *
 	 * @return void
 	 */
@@ -19,12 +19,12 @@ class OccurrenceController extends Controller
 
 	/**
 	 * @OA\Get(
-	 *     path="/api/v2/occurrences",
-	 *     operationId="/api/v2/occurrences",
+	 *     path="/api/installation",
+	 *     operationId="/api/installation",
 	 *     tags={""},
 	 *     @OA\Response(
 	 *         response="200",
-	 *         description="Returns list of occurrences",
+	 *         description="Returns list of installation",
 	 *         @OA\JsonContent()
 	 *     ),
 	 *     @OA\Response(
@@ -33,32 +33,39 @@ class OccurrenceController extends Controller
 	 *     ),
 	 * )
 	 */
-	 public function showAllOccurrences(Request $request)
+	public function showAllPortals(Request $request)
 	{
-		$limit = 100;
-		$page = 0;
-		if(is_numeric($request->input('limit'))) $limit = $request->input('limit');
-		if(is_numeric($request->input('page'))) $page = $request->input('page');
-		return response()->json(Occurrence::skip($page)->take($limit)->get());
+	    $this->validate($request, [
+            'limit' => 'integer',
+            'offset' => 'integer'
+	    ]);
+	    $limit = $request->input('limit',100);
+	    $offset = $request->input('offset',0);
+
+	    $fullCnt = PortalIndex::count();
+	    $result = PortalIndex::skip($offset)->take($limit)->get();
+
+		$eor = false;
+		$retObj = [
+		        "offset" => $offset,
+		        "limit" => $limit,
+		        "endOfRecords" => $eor,
+		        "count" => $fullCnt,
+		        "results" => $result
+		];
+		return response()->json($retObj);
 	}
 
 	/**
 	 * @OA\Get(
-	 *     path="/api/v2/occurrences/{identifier}",
-	 *     operationId="/api/v2/occurrences/identifier",
+	 *     path="/api/installations/{identifier}",
+	 *     operationId="/api/installations/identifier",
 	 *     tags={""},
 	 *     @OA\Parameter(
 	 *         name="identifier",
 	 *         in="path",
-	 *         description="occid or specimen GUID (occurrenceID) associated with target occurrence",
+	 *         description="Installation ID or GUID associated with target installation",
 	 *         required=true,
-	 *         @OA\Schema(type="string")
-	 *     ),
-	 *     @OA\Parameter(
-	 *         name="includeMedia",
-	 *         in="query",
-	 *         description="Whether to include media within output",
-	 *         required=false,
 	 *         @OA\Schema(type="string")
 	 *     ),
 	 *     @OA\Response(
@@ -72,39 +79,69 @@ class OccurrenceController extends Controller
 	 *     ),
 	 * )
 	 */
-	 public function showOneOccurrence($id, Request $request)
+	 public function showOnePortal($id, Request $request)
 	{
-		$occurrence = Occurrence::find($id);
-		if($request->input('includeMedia') == 1) $occurrence->media = Occurrence::find($id)->media;
-		if($request->input('includeIdentHistory ') == 1) $occurrence->identification = Occurrence::find($id)->identification;
-		return response()->json($occurrence);
+		$portalObj = $portalObj = PortalIndex::find($id);;
+	    if(is_numeric($id)) PortalIndex::where('guid',$id)->get();
+        return response()->json($portalObj);
+	}
+
+	public function portalHandshake($id, Request $request)
+	{
+		$portalObj = $portalObj = PortalIndex::find($id);;
+		if(is_numeric($id)) PortalIndex::where('guid',$id)->get();
+		if(!$portalObj){
+			if($baseUrl = $request->input('endpoint')){
+				$url = $baseUrl.'/api/installation/'.$id;
+				$response = $this->getAPIResponce($url);
+			}
+		}
 	}
 
 	public function create(Request $request)
 	{
 		/*
-		$this->validate($request, [
-				'name' => 'required',
-				'email' => 'required|email|unique:authors',
-				'location' => 'required|alpha'
-		]);
-		*/
-		$occurrence = Occurrence::create($request->all());
+	    $portalIndex = PortalIndex::create($request->all());
 
-		return response()->json($occurrence, 201);
+	    return response()->json($portalIndex, 201);
+		*/
 	}
 
 	public function update($id, Request $request)
 	{
-		$occurrence = Occurrence::findOrFail($id);
-		$occurrence->update($request->all());
+	    /*
+	    $portalIndex = PortalIndex::findOrFail($id);
+	    $portalIndex->update($request->all());
 
-		return response()->json($occurrence, 200);
+	    return response()->json($portalIndex, 200);
+	    */
 	}
 
 	public function delete($id)
 	{
-		Occurrence::findOrFail($id)->delete();
-		return response('Occurrence Deleted Successfully', 200);
+	    /*
+	    PortalIndex::findOrFail($id)->delete();
+		return response('Portal Index deleted successfully', 200);
+		*/
 	}
+
+	//Helper functions
+	private function getAPIResponce($url){
+		$resJson = false;
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_URL, $url);
+		//curl_setopt($ch, CURLOPT_HTTPGET, true);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		$resJson = curl_exec($ch);
+		if(!$resJson){
+			$this->errorMessage = 'FATAL CURL ERROR: '.curl_error($ch).' (#'.curl_errno($ch).')';
+			echo 'ERROR: '.$this->errorMessage;
+			//$header = curl_getinfo($ch);
+		}
+		curl_close($ch);
+		return json_encode($resJson);
+	}
+
 }
